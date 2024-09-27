@@ -4,6 +4,13 @@ require("dotenv").config();
 
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
 	dialect: "postgres",
+	dialectOptions: {
+		ssl: {
+			require: true,
+			rejectUnauthorized: false, // Set this to 'true' if you have proper certificates
+		},
+	},
+	logging: false, // Disable logging; set to true to enable SQL query logging
 });
 
 const User = sequelize.define("User", {

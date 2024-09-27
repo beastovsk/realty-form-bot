@@ -1,6 +1,8 @@
+import { Context } from "grammy";
+
 // bot.js
 const { Bot, InlineKeyboard } = require("grammy");
-const { sequelize, User, Survey, Response } = require("./models");
+const { sequelize, User } = require("./models");
 require("dotenv").config();
 
 const bot = new Bot(process.env.BOT_TOKEN);
@@ -9,8 +11,8 @@ const bot = new Bot(process.env.BOT_TOKEN);
 sequelize.sync().then(() => console.log("Database synced"));
 
 // Хэндлер команды /start
-bot.command("start", async (ctx) => {
-	const telegramId = ctx.from.id.toString();
+bot.command("start", async (ctx: Context) => {
+	const telegramId = ctx.from?.id.toString();
 
 	// Создаем пользователя, если его нет в БД
 	let [user] = await User.findOrCreate({ where: { telegramId } });
@@ -31,21 +33,33 @@ bot.command("start", async (ctx) => {
 	ctx.reply("Привет! Вы можете создавать анкеты для сбора информации.");
 });
 
-// Хэндлер нажатия кнопки подписки
-bot.callbackQuery("subscribe", async (ctx) => {
-	// Создаем инвойс на оплату подписки
-	await ctx.replyWithInvoice({
-		provider_token: process.env.PAYMENT_PROVIDER_TOKEN,
-		currency: "RUB",
-		prices: [{ label: "Подписка", amount: 50000 }], // 500 RUB
-		description: "Оплата подписки на создание анкет",
-		payload: JSON.stringify({ userId: ctx.from.id }),
-	});
+// Handler for the subscription button click
+bot.callbackQuery("subscribe", async (ctx: Context) => {
+	try {
+		// Send the invoice for subscription payment
+		await bot.api.sendInvoice(
+			ctx.chat?.id, // chat_id: chat to send the invoice
+			"Подписка на создание анкет", // title
+			"Оплата подписки на создание анкет", // description
+			JSON.stringify({ userId: ctx.from?.id }), // payload
+			process.env.PAYMENT_PROVIDER_TOKEN,
+			"RUB", // currency: currency code
+			[
+				{
+					label: "Подписка", // Description of the price
+					amount: 50000, // Amount in the smallest units of currency (50000 = 500 RUB)
+				},
+			]
+		);
+	} catch (error) {
+		console.error("Error sending invoice:", error);
+		ctx.reply("Не удалось создать инвойс. Попробуйте позже.");
+	}
 });
 
 // Обработчик успешного платежа
-bot.on("message", async (ctx) => {
-	const payment = ctx.message.successful_payment;
+bot.on("message", async (ctx: Context) => {
+	const payment = ctx.message?.successful_payment;
 	if (payment) {
 		// Извлекаем userId из payload успешного платежа
 		const { userId } = JSON.parse(payment.invoice_payload);
@@ -63,9 +77,9 @@ bot.on("message", async (ctx) => {
 });
 
 // Хэндлер команды для создания анкеты
-bot.command("create_survey", async (ctx) => {
+bot.command("create_survey", async (ctx: Context) => {
 	const user = await User.findOne({
-		where: { telegramId: ctx.from.id.toString() },
+		where: { telegramId: ctx.from?.id.toString() },
 	});
 
 	if (!user || !user.isSubscribed) {
@@ -74,7 +88,7 @@ bot.command("create_survey", async (ctx) => {
 
 	// Логика создания анкеты
 	ctx.reply("Введите название анкеты:");
-	bot.on("message:text", async (msgCtx) => {
+	bot.on("message:text", async (msgctx: Context) => {
 		// Здесь будет логика сохранения анкеты в базу
 		// Сначала запросим у пользователя название и вопросы, потом сохраним в БД
 	});
