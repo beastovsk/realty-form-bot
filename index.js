@@ -1,10 +1,13 @@
 const { Bot, InlineKeyboard } = require("grammy");
 const { hydrate } = require("@grammyjs/hydrate");
 const { requests, questions } = require("./data");
+const { sequelize, User, Requests } = require("./models");
 require("dotenv").config();
 
 const bot = new Bot(process.env.BOT_TOKEN);
 bot.use(hydrate());
+
+sequelize.sync().then(() => console.log("Database synced"));
 
 // bot.api.setMyCommands([
 // 	{ command: "start", description: "Запустить бота" },

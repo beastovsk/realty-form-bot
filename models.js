@@ -23,44 +23,27 @@ const User = sequelize.define("User", {
 		type: DataTypes.BOOLEAN,
 		defaultValue: false,
 	},
+	subscriptionStarts: {
+		type: DataTypes.DATE,
+	},
+	subscriptionEnds: {
+		type: DataTypes.DATE,
+	},
+	questions: { type: DataTypes.ARRAY(DataTypes.STRING) },
 });
 
-const Survey = sequelize.define("Survey", {
-	title: {
-		type: DataTypes.STRING,
-		allowNull: false,
+const Requests = sequelize.define("Requests", {
+	date: {
+		type: DataTypes.DATE,
 	},
-	description: {
-		type: DataTypes.STRING,
-	},
-	questions: {
-		type: DataTypes.JSONB,
-		allowNull: false,
-	},
+	answers: { type: DataTypes.ARRAY(DataTypes.JSON) },
 	ownerId: {
 		type: DataTypes.INTEGER,
 		allowNull: false,
 	},
 });
 
-const Response = sequelize.define("Response", {
-	answers: {
-		type: DataTypes.JSONB,
-		allowNull: false,
-	},
-	surveyId: {
-		type: DataTypes.INTEGER,
-		allowNull: false,
-	},
-	respondentId: {
-		type: DataTypes.INTEGER,
-		allowNull: false,
-	},
-});
+User.hasMany(Requests, { foreignKey: "ownerId" });
+Requests.belongsTo(User, { foreignKey: "ownerId" });
 
-User.hasMany(Survey, { foreignKey: "ownerId" });
-Survey.belongsTo(User, { foreignKey: "ownerId" });
-Survey.hasMany(Response, { foreignKey: "surveyId" });
-Response.belongsTo(Survey, { foreignKey: "surveyId" });
-
-module.exports = { sequelize, User, Survey, Response };
+module.exports = { sequelize, User, Requests };
