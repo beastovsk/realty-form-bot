@@ -58,6 +58,9 @@ const Requests = sequelize.define("Requests", {
 		type: DataTypes.STRING, // Должен совпадать с типом id из User
 		allowNull: false,
 	},
+	sender: {
+		type: DataTypes.STRING,
+	},
 });
 
 User.hasMany(Requests, { foreignKey: "ownerId" });

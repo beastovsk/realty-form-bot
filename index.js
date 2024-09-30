@@ -170,9 +170,10 @@ bot.callbackQuery(/request_\d+/, async (ctx) => {
 
 	const request = requests[index];
 
-	const answersText = request.answers
-		.map((answer) => `*${answer.question}*\n${answer.response}`)
-		.join("\n\n");
+	const answersText =
+		request.answers
+			.map((answer) => `*${answer.question}*\n${answer.response}`)
+			.join("\n\n") + `\n\nОтправитель - @${request.sender}`;
 
 	const backKeyboard = new InlineKeyboard()
 		.text("⬅️ Назад", "show_requests")
