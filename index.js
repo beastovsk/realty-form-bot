@@ -130,12 +130,44 @@ bot.callbackQuery("add_question", async (ctx) => {
 	});
 	isQuestion = true;
 });
-
 bot.callbackQuery("show_requests", async (ctx) => {
 	const telegramId = String(ctx.from.id);
 	const requests = await Requests.findAll({ where: { ownerId: telegramId } });
-
+	const user = await User.findOne({ where: { telegramId } });
 	const keyboard = new InlineKeyboard();
+
+	const now = new Date();
+	// Проверяем, если подписка вообще установлена, а потом — дату окончания
+	if (user.subscriptionEnds && user.subscriptionEnds <= now) {
+		await user.update({
+			isSubscribed: false,
+			subscriptionStarts: null,
+			subscriptionEnds: null,
+		});
+
+		return await ctx.callbackQuery.message.editText(
+			"Подписка закончилась, выберите подходящий план",
+			{
+				reply_markup: new InlineKeyboard().text(
+					"Перейти к тарифам",
+					"show-payment"
+				),
+			}
+		);
+	}
+
+	// Проверяем, активна ли подписка
+	if (!user.isSubscribed) {
+		return await ctx.callbackQuery.message.editText(
+			"Подписка закончилась, выберите подходящий план",
+			{
+				reply_markup: new InlineKeyboard().text(
+					"Перейти к тарифам",
+					"show-payment"
+				),
+			}
+		);
+	}
 
 	if (!requests || requests.length === 0) {
 		await ctx.callbackQuery.message.editText("У вас нет заявок.", {
