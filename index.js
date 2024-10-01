@@ -376,7 +376,7 @@ bot.callbackQuery("back", async (ctx) => {
 	const requests = await Requests.findAll({ where: { ownerId: telegramId } });
 
 	await ctx.callbackQuery.message.editText(
-		`Главное меню\n- У тебя ${requests.length} заявок\nВаша персональная ссылка для лидов - https://t.me/reality_form_bot?start=${telegramId}`,
+		`Главное меню\n- У тебя ${requests.length} заявок\nВаша персональная ссылка для лидов - https://t.me/realty_form_manager_bot?start=${telegramId}`,
 		{ reply_markup: menuKeyboard }
 	);
 });
